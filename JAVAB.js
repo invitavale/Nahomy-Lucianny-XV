@@ -123,108 +123,45 @@ window.addEventListener('load', function() {
 
 
 
-// Cargar la API de YouTube
+// Música de fondo (archivo local musica.mp3)
+let bgAudio = null;
 function loadYouTubeAPI() {
-    const script = document.createElement('script');
-    script.src = 'https://www.youtube.com/iframe_api';
-    document.body.appendChild(script);
-    window.onYouTubeIframeAPIReady = initializeYouTubePlayer;
-}
-
-// Función llamada por la API de YouTube
-function initializeYouTubePlayer() {
-    if (player) return; // ya inicializado, evita crear el player dos veces
-
-    player = new YT.Player('youtube-player', {
-        height: '1',
-        width: '1',
-        videoId: 'vwp1yxtcD7I',
-        playerVars: {
-            autoplay: 0,
-            controls: 0,
-            disablekb: 1,
-            fs: 0,
-            loop: 1,
-            modestbranding: 1,
-            playsinline: 1,
-            rel: 0,
-            showinfo: 0,
-            iv_load_policy: 3,
-            playlist: 'vwp1yxtcD7I'
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange,
-            'onError': onPlayerError
-        }
-    });
-}
-
-function onPlayerReady(event) {
-    playerReady = true;
-    const musicPlayer = document.getElementById('musicPlayer');
+    bgAudio = new Audio('musica.mp3');
+    bgAudio.loop = true;
+    bgAudio.preload = 'auto';
+    // Objeto compatible con el resto del código (antes era el player de YouTube)
+    player = {
+        unMute() { bgAudio.muted = false; },
+        setVolume(v) { bgAudio.volume = Math.max(0, Math.min(1, v / 100)); },
+        playVideo() { const p = bgAudio.play(); if (p && p.catch) p.catch(() => {}); },
+        pauseVideo() { bgAudio.pause(); },
+        getPlayerState() { return bgAudio.paused ? 2 : 1; }
+    };
+    bgAudio.addEventListener('play', () => { isPlaying = true; updateMusicIcon(); });
+    bgAudio.addEventListener('pause', () => { isPlaying = false; updateMusicIcon(); });
     const musicToggle = document.getElementById('musicToggle');
-
-    if (musicToggle) {
-        musicToggle.addEventListener('click', toggleMusic);
-    }
-
-    // Caso borde: el usuario ya hizo click en "con música" antes de que el
-    // player terminara de inicializar (ej. conexión lenta). Lo reproducimos
-    // apenas esté listo.
-    if (enableMusic && !isPlaying) {
-        if (musicPlayer) musicPlayer.style.display = 'block';
-        event.target.unMute();
-        event.target.setVolume(100);
-        event.target.playVideo();
-        isPlaying = true;
-        updateMusicIcon();
-    }
-}
-
-function onPlayerStateChange(event) {
-    if (event.data === YT.PlayerState.PLAYING) {
-        isPlaying = true;
-    } else if (event.data === YT.PlayerState.PAUSED) {
-        isPlaying = false;
-    }
-    updateMusicIcon();
-}
-
-function onPlayerError(event) {
-    console.log('Error al cargar el video de YouTube');
-    const musicPlayer = document.getElementById('musicPlayer');
-    musicPlayer.style.display = 'block';
-    isPlaying = false;
-    updateMusicIcon();
+    if (musicToggle) musicToggle.addEventListener('click', toggleMusic);
+    playerReady = true;
 }
 
 function toggleMusic() {
     if (player) {
-        if (isPlaying) {
-            player.pauseVideo();
-            isPlaying = false;
-        } else {
-            player.playVideo();
-            isPlaying = true;
-        }
-        updateMusicIcon();
+        if (isPlaying) { player.pauseVideo(); } else { player.playVideo(); }
     }
 }
 
 function updateMusicIcon() {
     const volumeIcon = document.getElementById('volumeIcon');
-    
     if (volumeIcon) {
         if (isPlaying) {
             volumeIcon.innerHTML = `
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#222" stroke="#fff" stroke-width="1"></polygon>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.08" stroke="#222" stroke-width="2"></path>
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#A95F73" stroke="#fff" stroke-width="1"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.08" stroke="#A95F73" stroke-width="2"></path>
                 <circle cx="6.5" cy="12" r="1" fill="#D98FA3"/>
             `;
         } else {
             volumeIcon.innerHTML = `
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#222" stroke="#fff" stroke-width="1"></polygon>
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#A95F73" stroke="#fff" stroke-width="1"></polygon>
                 <line x1="19" y1="9" x2="17" y2="11" stroke="#ff6b6b" stroke-width="2"></line>
                 <line x1="17" y1="9" x2="19" y2="11" stroke="#ff6b6b" stroke-width="2"></line>
                 <circle cx="6.5" cy="12" r="1" fill="#ff6b6b"/>
@@ -235,7 +172,7 @@ function updateMusicIcon() {
 
 // Countdown
 function initializeCountdown() {
-    const targetDate = new Date('2026-12-20T15:30:00').getTime();
+    const targetDate = new Date('2026-11-20T18:30:00').getTime();
     
     function updateCountdown() {
         const now = new Date().getTime();
@@ -401,8 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function openLocation(location) {
     // Enlaces de ejemplo (dirección ficticia) - ceremonia y celebración
     const mapsUrls = {
-        ceremony: "https://maps.app.goo.gl/jGF4dqpyfrakbxSTA",
-        reception: "https://maps.app.goo.gl/jGF4dqpyfrakbxSTA"
+        ceremony: "https://maps.app.goo.gl/zJzudzb3Ge8ict166",
+        reception: "https://maps.app.goo.gl/zJzudzb3Ge8ict166"
     };
     const mapsUrl = mapsUrls[location] || mapsUrls.ceremony;
     window.open(mapsUrl, '_blank');
@@ -413,8 +350,7 @@ function openLocation(location) {
 // regalos, etc.) cuando personalices la invitación.
 
 function sharePhotos() {
-    // Ejemplo: aquí se debe colocar el enlace real a la carpeta de Google Drive.
-    window.open('https://photos.app.goo.gl/p9PGQHWrvLG1Bpj28', '_blank');
+    window.open('https://photos.app.goo.gl/m5Kn7htCGSmSteeF6', '_blank');
 }
 
 function showDressCode() {
@@ -438,8 +374,7 @@ function showGifts() {
 }
 
 function confirmAttendance() {
-    // Ejemplo: aquí se debe colocar el enlace real al formulario de Google Forms.
-    window.open('https://docs.google.com/forms/d/e/1FAIpQLSdIYoM33yAkMmS4DZCRVmO9_IE0gZT4eEw8cV0r2PgWlYE0Ag/viewform?usp=header', '_blank');
+    window.open('https://wa.me/18298087223?text=Confirmo%20mi%20asistencia%20a%20los%20XV%20a%C3%B1os%20de%20Nahomy%20Lucianny%20Cueto', '_blank');
 }
 
 // Sistema de Toast
