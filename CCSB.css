@@ -334,14 +334,14 @@ html { background-color: #FFF9F2; }
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(480px, 82vw);
+    width: min(600px, 90vw);
     height: auto;
     display: block;
 }
 
 @media (max-width: 768px) {
     .section-divider img {
-        width: min(300px, 78vw);
+        width: min(380px, 94vw);
     }
 }
 
@@ -1617,14 +1617,14 @@ button[class*="carousel"] {
 
 /* Fondos por sección según la paleta XV: blanco crema y blanco cálido alternos */
 .countdown-section,
-.gallery-section,
-.gifts-section,
+.party-section,
 .rsvp-section {
     background-color: #FFF9F2 !important;
 }
 
 .events-section,
-.party-section {
+.gifts-section,
+.footer {
     background-color: #F8E1E7 !important;
 }
 

@@ -405,20 +405,24 @@
 /* =========================================================
    PIE DE PÁGINA
    ========================================================= */
-.footer { padding: 3rem 1rem 2.5rem; }
+.footer { padding: 5.5rem 1rem 1.25rem !important; } /* arriba deja espacio al separador floral */
+@media (max-width: 768px) {
+    .footer { padding-top: 3.75rem !important; }
+}
 
 .footer-content > p:first-child {
     font-family: 'Cormorant Garamond', 'Playfair Display', serif;
     font-style: italic;
-    font-size: 1.15rem;
+    font-size: 0.85rem;
+    margin: 0;
 }
 
 .footer-content h3 {
     font-family: 'Great Vibes', 'Playfair Display', cursive !important;
     font-weight: 400;
-    font-size: 3rem !important;
+    font-size: 1.5rem !important;
     line-height: 1.2;
-    margin: 0.25rem 0 0.4rem !important;
+    margin: 0.15rem 0 0.2rem !important;
     background: linear-gradient(115deg, #7E5A18 0%, #B88A2E 30%, #D9B866 50%, #A87C26 70%, #7E5A18 100%);
     background-size: 220% 100%;
     -webkit-background-clip: text;
@@ -429,17 +433,18 @@
 .footer-content h3::after {
     content: "";
     display: block;
-    width: 160px;
-    height: 16px;
-    margin: 0.3rem auto 0;
+    width: 80px;
+    height: 8px;
+    margin: 0.15rem auto 0;
     background: var(--ornamento) center / contain no-repeat;
 }
 
 .footer-date {
     color: var(--oro-oscuro) !important;
-    letter-spacing: 0.25em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    font-size: 0.75rem !important;
+    font-size: 0.6rem !important;
+    margin-top: 0.4rem !important;
 }
 
 /* =========================================================
@@ -510,16 +515,39 @@
 
 /* =========================================================
    COLORES INTERCALADOS — crema y rosa alternados sección por sección
+   Orden: Falta (crema) → Evento (rosa) → Fiesta (crema) →
+          Regalos (rosa) → Confirmación (crema) → Pie (rosa)
    ========================================================= */
 .countdown-section,
-.gallery-section,
-.gifts-section,
-.footer {
+.party-section,
+.rsvp-section {
     background-color: #FFF9F2 !important; /* crema */
 }
 
 .events-section,
-.party-section,
-.rsvp-section {
+.gifts-section,
+.footer {
     background-color: #F8E1E7 !important; /* rosa claro */
+}
+
+/* Ícono de WhatsApp más pequeño */
+.rsvp-container .whatsapp-icon {
+    width: 3rem !important;
+    height: 3rem !important;
+    margin: 0 auto 1.25rem !important;
+}
+.rsvp-container .whatsapp-icon svg {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Separadores florales: el contenedor ocupa todo el ancho para que la flor
+   nunca quede en 0 px (algunos navegadores/visores aplican img{max-width:100%}) */
+.section-divider {
+    width: 100%;
+    align-self: stretch;
+}
+.section-divider img,
+.top-garland img {
+    max-width: none !important;
 }
