@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="intro-lock">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,6 +19,7 @@
     <meta property="og:locale" content="es_DO">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="http://invitavale.com/Nahomy-Lucianny-XV/vista-previa.jpg">
+    <link rel="preload" as="image" href="intro-poster.jpg">
     <link rel="preload" as="image" href="foto0.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -161,21 +162,29 @@
         }
 
     </style>
-    <link rel="stylesheet" href="elegante.css?v=8">
+    <link rel="stylesheet" href="elegante.css?v=9">
 </head>
 <body>
     <div class="main-center">
-        <!-- Modal de Bienvenida -->
-        <div id="welcomeModal" class="modal-overlay">
-            <div class="welcome-hero">
-                <h1 class="welcome-title welcome-title-sm">Bienvenidos a la<br/>invitación de mis<br/>XV Años</h1>
-                <p class="welcome-note">La música de fondo es parte de la experiencia</p>
-                <div class="welcome-actions">
-                    <button id="enterWithMusic" class="btn-gold" onclick="enterWithMusicClick()">Ingresar con música</button>
-                    <button id="enterWithoutMusic" class="btn-gold-outline" onclick="enterWithoutMusicClick()">Ingresar sin música</button>
-                </div>
-            </div>
+        <!-- Intro: video de la puerta. Al tocarlo arranca todo (video + música) -->
+        <div id="introVideo" class="intro-video" role="button" tabindex="0"
+             aria-label="Toca para abrir la invitación de Nahomy">
+            <video id="doorVideo" poster="intro-poster.jpg"
+                   playsinline webkit-playsinline preload="auto">
+                <source src="intro.mp4" type="video/mp4">
+                <source src="intro.webm" type="video/webm">
+            </video>
+            <div class="intro-light"></div>
+            <button class="intro-hint" type="button" tabindex="-1">
+                <span class="intro-play" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>
+                </span>
+                Toca para abrir
+            </button>
         </div>
+
+        <!-- Música de fondo -->
+        <audio id="bgMusic" src="musica.mp3" loop preload="auto"></audio>
 
         <!-- Reproductor de música -->
         <div id="musicPlayer" class="music-player" style="display: none;">
@@ -186,7 +195,6 @@
                     <circle cx="6.5" cy="12" r="1" fill="#D98FA3"/>
                 </svg>
             </button>
-            <div id="youtube-player" style="position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
         </div>
 
         <!-- Hero Section -->
@@ -384,7 +392,7 @@
             } catch(e) {}
         })();
         </script>
-        <script src="JAVAB.js?v=18" defer></script>
+        <script src="JAVAB.js?v=19" defer></script>
         <script src="burbujas.js?v=3" defer></script>
 </body>
 </html>

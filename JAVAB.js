@@ -98,55 +98,154 @@ function setupModalButtons() {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-    // console.log('DOM cargado, inicializando...');
     initializeCountdown();
     initializeCarousel();
-    setupModalButtons();
-
-    // Mostrar el modal de bienvenida para elegir con/sin música
-    const modal = document.getElementById('welcomeModal');
-    if (modal) {
-        modal.style.display = 'flex';
-    }
-
-    // Se precarga el player de YouTube desde el inicio (no en el click) para
-    // que playVideo() pueda ejecutarse de forma síncrona dentro del gesto del
-    // usuario en enterWithMusicClick(). Esto es lo que exige iOS Safari.
-    loadYouTubeAPI();
-});
-
-// También configurar cuando la página esté completamente cargada
-window.addEventListener('load', function() {
-    // console.log('Ventana completamente cargada');
-    setupModalButtons();
-});
-
-
-
-// Música de fondo (archivo local musica.mp3)
-let bgAudio = null;
-function loadYouTubeAPI() {
-    bgAudio = new Audio('musica.mp3');
-    bgAudio.loop = true;
-    bgAudio.preload = 'auto';
-    // Objeto compatible con el resto del código (antes era el player de YouTube)
-    player = {
-        unMute() { bgAudio.muted = false; },
-        setVolume(v) { bgAudio.volume = Math.max(0, Math.min(1, v / 100)); },
-        playVideo() { const p = bgAudio.play(); if (p && p.catch) p.catch(() => {}); },
-        pauseVideo() { bgAudio.pause(); },
-        getPlayerState() { return bgAudio.paused ? 2 : 1; }
-    };
-    bgAudio.addEventListener('play', () => { isPlaying = true; updateMusicIcon(); });
-    bgAudio.addEventListener('pause', () => { isPlaying = false; updateMusicIcon(); });
+    initializeIntro();
     const musicToggle = document.getElementById('musicToggle');
     if (musicToggle) musicToggle.addEventListener('click', toggleMusic);
-    playerReady = true;
+    const audio = document.getElementById('bgMusic');
+    if (audio) {
+        audio.addEventListener('playing', () => { isPlaying = true; updateMusicIcon(); });
+        audio.addEventListener('pause', () => { isPlaying = false; updateMusicIcon(); });
+    }
+});
+
+// =========================================================
+// Intro con el video de la puerta.
+// El toque del invitado es la interacción que arranca todo: el video
+// (con su sonido) y la música de fondo, en el mismo gesto, que es lo que
+// exigen iPhone y Android para dejar sonar el audio.
+// En el segundo 3 se apaga el sonido del video y queda solo la música.
+// Al terminar, la luz dorada del final se disuelve sobre la portada.
+// =========================================================
+const VIDEO_SONIDO_HASTA = 3;
+
+function initializeIntro() {
+    const intro = document.getElementById('introVideo');
+    const video = document.getElementById('doorVideo');
+    const audio = document.getElementById('bgMusic');
+    const root = document.documentElement;
+    if (!intro || !video) { root.classList.remove('intro-lock'); return; }
+
+    let started = false, finished = false;
+
+    const finish = () => {
+        if (finished) return;
+        finished = true;
+        window.scrollTo(0, 0);
+        intro.classList.add('is-leaving');           // la luz se disuelve
+        root.classList.remove('intro-lock');
+        root.classList.add('intro-done');            // entra la portada
+        setTimeout(() => intro.remove(), 2000);
+        subirMusica(audio);
+    };
+
+    const start = () => {
+        if (started) return;
+        started = true;
+        enableMusic = true;
+        intro.classList.add('is-playing');
+        const mp = document.getElementById('musicPlayer');
+        if (mp) mp.style.display = 'block';
+
+        // 1) Música: arranca en este mismo toque
+        if (audio) {
+            try { audio.currentTime = 0; } catch (e) {}
+            audio.muted = false;
+            try { audio.volume = 0.55; } catch (e) {}   // suave mientras suena la puerta
+            const pa = audio.play();
+            if (pa && pa.catch) pa.catch(() => {});
+        }
+
+        // 2) Video con su sonido solo hasta el segundo 3
+        video.muted = false;
+        try { video.volume = 1; } catch (e) {}
+        let silenciado = false;
+        const silenciar = () => {
+            if (silenciado) return;
+            silenciado = true;
+            apagarSonido(video);
+            subirMusica(audio);
+        };
+        video.addEventListener('timeupdate', function onT() {
+            if (video.currentTime >= VIDEO_SONIDO_HASTA) {
+                video.removeEventListener('timeupdate', onT);
+                silenciar();
+            }
+        });
+        setTimeout(silenciar, (VIDEO_SONIDO_HASTA + 1) * 1000);   // respaldo
+
+        const pv = video.play();
+        if (pv && pv.catch) {
+            pv.catch(() => {
+                video.muted = true;
+                video.play().catch(() => finish());
+            });
+        }
+        // Empieza la transición un poco antes del final, sobre la luz dorada
+        video.addEventListener('timeupdate', function nearEnd() {
+            if (isFinite(video.duration) && video.currentTime >= video.duration - 0.6) {
+                video.removeEventListener('timeupdate', nearEnd);
+                finish();
+            }
+        });
+        video.addEventListener('ended', finish);
+        const dur = isFinite(video.duration) && video.duration > 0 ? video.duration : 8;
+        setTimeout(finish, (dur + 2.5) * 1000);   // red de seguridad
+
+        // Si el teléfono no dejó sonar la música, el próximo toque la arranca
+        const retry = () => {
+            if (!audio || !audio.paused || userPausedMusic) {
+                ['click', 'touchend'].forEach(ev => document.removeEventListener(ev, retry, true));
+                return;
+            }
+            audio.play().catch(() => {});
+        };
+        setTimeout(() => ['click', 'touchend'].forEach(ev => document.addEventListener(ev, retry, true)), 600);
+    };
+
+    intro.addEventListener('click', start);
+    intro.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); start(); }
+    });
+    if (video.error) video.addEventListener('click', finish);
+    video.addEventListener('error', () => { if (started) finish(); });
+}
+
+let userPausedMusic = false;
+
+// Apaga el sonido del video con un desvanecido corto (en iPhone se silencia directo)
+function apagarSonido(video) {
+    if (!video || video.muted) return;
+    let v = video.volume;
+    const fade = setInterval(() => {
+        v = Math.max(0, v - 0.1);
+        try { video.volume = v; } catch (e) {}
+        if (v <= 0) { clearInterval(fade); video.muted = true; }
+    }, 40);
+}
+
+// Sube la música a volumen completo poco a poco
+function subirMusica(audio) {
+    if (!audio || userPausedMusic) return;
+    if (audio.paused) audio.play().catch(() => {});
+    let v = audio.volume;
+    const fade = setInterval(() => {
+        v = Math.min(1, v + 0.05);
+        try { audio.volume = v; } catch (e) {}
+        if (v >= 1) clearInterval(fade);
+    }, 80);
 }
 
 function toggleMusic() {
-    if (player) {
-        if (isPlaying) { player.pauseVideo(); } else { player.playVideo(); }
+    const audio = document.getElementById('bgMusic');
+    if (!audio) return;
+    if (audio.paused) {
+        userPausedMusic = false;
+        audio.play().catch(() => {});
+    } else {
+        userPausedMusic = true;
+        audio.pause();
     }
 }
 
